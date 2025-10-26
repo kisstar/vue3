@@ -7,6 +7,10 @@
     "outDir": "dist",
     "resolveJsonModule": true,
     "strict": false,
-    "lib": ["ESNext", "DOM"]
+    "lib": ["ESNext", "DOM"],
+    "baseUrl": ".",
+    "paths": {
+      "@vue/*": ["packages/*/src"]
+    }
   }
 }
