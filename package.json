@@ -2,9 +2,10 @@
   "name": "vue3",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "node scripts/dev.js"
+    "dev": "node scripts/dev.js reactivity --format iife"
   },
   "keywords": [],
   "author": "",
@@ -13,5 +14,9 @@
   "devDependencies": {
     "esbuild": "^0.25.11",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@types/node": "^24.9.1",
+    "prettier": "^3.6.2"
   }
 }
