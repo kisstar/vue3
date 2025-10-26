@@ -1,5 +1,3 @@
-import { effect } from "./effect"
-
 export interface Link {
   sub: Function
   prevSub?: Link
@@ -23,8 +21,6 @@ export function link(dep, sub) {
   }
 }
 
-
-
 export function progagate(subs) {
   let link = subs;
   let queueEffect = []
@@ -35,6 +31,6 @@ export function progagate(subs) {
   }
 
   queueEffect.forEach(effect => {
-    effect()
+    effect.notify()
   })
 }
