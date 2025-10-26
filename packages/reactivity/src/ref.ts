@@ -1,5 +1,5 @@
 import { activeSub } from './effect'
-import { Link, link, progagate } from './system'
+import { Link, link, propagate } from './system'
 
 enum ReactiveFlags {
   IS_REF = "__v_isRef"
@@ -57,6 +57,6 @@ export function trackRef(dep) {
  */
 export function triggerRef(dep) {
   if (dep.subs) {
-    progagate(dep.subs)
+    propagate(dep.subs)
   }
 }

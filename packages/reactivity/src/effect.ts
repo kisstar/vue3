@@ -1,14 +1,21 @@
+import { Link } from "./system"
+
 // 当前正在执行的 effect
 export let activeSub
 
 class ReactiveEffect {
+  deps?: Link
+  depsTail?: Link
+
   constructor(public fn) {
 
   }
 
   run() {
     const prevSub = activeSub
+
     activeSub = this
+    this.depsTail = undefined
 
     try {
       return this.fn()

@@ -1,14 +1,37 @@
-export interface Link {
-  sub: Function
-  prevSub?: Link
-  nextSub?: Link
+export interface Dep {
+  subs?: Link
+  subsTail?: Link
 }
 
-export function link(dep, sub) {
+export interface Sub {
+  deps?: Link
+  depsTail?: Link
+}
+
+export interface Link {
+  sub: Sub // 订阅者
+  prevSub?: Link
+  nextSub?: Link
+
+  dep: Dep // 依赖项
+  nextDep?: Link
+}
+
+export function link(dep /* RefImpl */, sub /* ReactiveEffect */) {
+  const currentDep = sub.depsTail
+  const nextDep = currentDep === undefined ? sub.deps : currentDep.nextDep
+
+  if (nextDep && nextDep.dep === dep) {
+    sub.depsTail = nextDep
+    return
+  }
+
   const newLink = {
-    sub: sub,
+    sub,
     prevSub: undefined,
-    nextSub: undefined
+    nextSub: undefined,
+    dep,
+    nextDep: undefined
   }
 
   if (dep.subsTail) {
@@ -19,9 +42,18 @@ export function link(dep, sub) {
     dep.subs = newLink
     dep.subsTail = newLink
   }
+
+  // 单链表
+  if (sub.depsTail) {
+    sub.depsTail.nextDep = newLink
+    sub.depsTail = newLink
+  } else {
+    sub.deps = newLink
+    sub.depsTail = newLink
+  }
 }
 
-export function progagate(subs) {
+export function propagate(subs) {
   let link = subs;
   let queueEffect = []
 
