@@ -31,7 +31,7 @@ export function link(dep /* RefImpl */, sub /* ReactiveEffect */) {
     prevSub: undefined,
     nextSub: undefined,
     dep,
-    nextDep: undefined
+    nextDep
   }
 
   if (dep.subsTail) {
@@ -65,4 +65,46 @@ export function propagate(subs) {
   queueEffect.forEach(effect => {
     effect.notify()
   })
+}
+
+export function startTrack(sub) {
+  sub.depsTail = undefined
+}
+
+export function endTrack(sub) {
+  const depsTail = sub.depsTail
+
+  if (depsTail) {
+    if (depsTail.nextDep) {
+      clearTracking(depsTail.nextDep)
+      depsTail.nextDep = undefined
+    }
+  } else if (sub.deps) {
+    clearTracking(sub.deps)
+    sub.deps = undefined
+  }
+}
+
+function clearTracking(link: Link) {
+  while (link) {
+    const { dep, prevSub, nextSub, nextDep } = link
+
+    if (prevSub) {
+      prevSub.nextSub = nextSub
+      link.nextSub = undefined
+    } else {
+      dep.subs = nextSub
+    }
+
+    if (nextSub) {
+      nextDep.prevSub = prevSub
+      link.prevSub = undefined
+    } else {
+      dep.subsTail = prevSub
+    }
+
+    link.sub = link.dep = undefined
+    link.nextDep = undefined
+    link = nextDep
+  }
 }

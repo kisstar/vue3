@@ -1,4 +1,4 @@
-import { Link } from "./system"
+import { endTrack, Link, startTrack } from "./system"
 
 // 当前正在执行的 effect
 export let activeSub
@@ -15,11 +15,12 @@ class ReactiveEffect {
     const prevSub = activeSub
 
     activeSub = this
-    this.depsTail = undefined
+    startTrack(this)
 
     try {
       return this.fn()
     } finally {
+      endTrack(this)
       activeSub = prevSub
     }
   }
@@ -33,6 +34,8 @@ class ReactiveEffect {
     this.scheduler()
   }
 }
+
+
 
 export function effect(fn, options) {
   const e = new ReactiveEffect(fn)

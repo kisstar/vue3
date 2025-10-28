@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">kisstar</div>
+    <button id="btn_flag">update flag</button>
+    <button id="btn_name">update name</button>
+    <button id="btn_age">update age</button>
+    <script type="module">
+      import { ref, effect } from '../dist/reactivity.esm.js'
+      // import {
+      //   ref,
+      //   effect,
+      // } from 'https://cdn.bootcdn.net/ajax/libs/vue/3.5.20/vue.esm-browser.js'
+
+      const flag = ref(true)
+      const name = ref('kisstar')
+      const age = ref(18)
+      let count = 0
+
+      const e = effect(() => {
+        console.count('effect')
+
+        if (count > 0) {
+          // return // 打开注释测试第二次依赖清空的情况
+        }
+
+        count++
+
+        if (flag.value) {
+          app.innerHTML = name.value
+        } else {
+          app.innerHTML = age.value
+        }
+      })
+
+      btn_flag.onclick = () => {
+        flag.value = !flag.value
+      }
+      btn_name.onclick = () => {
+        name.value = name.value + Math.random()
+      }
+      btn_age.onclick = () => {
+        age.value++
+      }
+    </script>
+  </body>
+</html>
