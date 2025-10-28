@@ -17,6 +17,8 @@ export interface Link {
   nextDep?: Link
 }
 
+let linkPool: Link
+
 export function link(dep /* RefImpl */, sub /* ReactiveEffect */) {
   const currentDep = sub.depsTail
   const nextDep = currentDep === undefined ? sub.deps : currentDep.nextDep
@@ -26,12 +28,23 @@ export function link(dep /* RefImpl */, sub /* ReactiveEffect */) {
     return
   }
 
-  const newLink = {
-    sub,
-    prevSub: undefined,
-    nextSub: undefined,
-    dep,
-    nextDep
+  let newLink
+
+  if (linkPool) {
+    newLink = linkPool
+    linkPool = linkPool.nextDep
+    newLink.nextDep = nextDep
+    newLink.sub = sub
+    newLink.dep = dep
+
+  } else {
+    newLink = {
+      sub,
+      prevSub: undefined,
+      nextSub: undefined,
+      dep,
+      nextDep
+    }
   }
 
   if (dep.subsTail) {
@@ -104,7 +117,8 @@ function clearTracking(link: Link) {
     }
 
     link.sub = link.dep = undefined
-    link.nextDep = undefined
+    link.nextDep = linkPool
+    linkPool = link
     link = nextDep
   }
 }
