@@ -71,7 +71,12 @@ export function propagate(subs) {
   let queueEffect = []
 
   while (link) {
-    queueEffect.push(link.sub)
+    const sub = link.sub
+
+    if (!sub.tracking) {
+      queueEffect.push()
+    }
+
     link = link.nextSub
   }
 
@@ -81,10 +86,12 @@ export function propagate(subs) {
 }
 
 export function startTrack(sub) {
+  sub.tracking = true
   sub.depsTail = undefined
 }
 
 export function endTrack(sub) {
+  sub.tracking = false
   const depsTail = sub.depsTail
 
   if (depsTail) {

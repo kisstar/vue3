@@ -6,6 +6,7 @@ export let activeSub
 class ReactiveEffect {
   deps?: Link
   depsTail?: Link
+  tracking = false
 
   constructor(public fn) {
 
