@@ -1,12 +1,14 @@
+import { hasChanged, isObject } from '@vue/shared'
 import { activeSub } from './effect'
 import { Link, link, propagate } from './system'
+import { reactive } from './reactive'
 
 enum ReactiveFlags {
-  IS_REF = "__v_isRef"
+  IS_REF = '__v_isRef',
 }
 
 class RefImpl {
-  _value // 保存实际的值
+  _value; // 保存实际的值
   [ReactiveFlags.IS_REF] = true // ref 标记
   // 订阅者链表的头节点
   subs: Link
@@ -14,7 +16,7 @@ class RefImpl {
   subsTail: Link
 
   constructor(value) {
-    this._value = value
+    this._value = isObject(value) ? reactive(value) : value
   }
 
   get value() {
@@ -25,9 +27,10 @@ class RefImpl {
     return this._value
   }
 
-
   set value(newValue) {
-    this._value = newValue
+    if (!hasChanged(newValue, this._value)) return
+
+    this._value = isObject(newValue) ? reactive(newValue) : newValue
     triggerRef(this)
   }
 }
@@ -35,7 +38,6 @@ class RefImpl {
 export function ref(value) {
   return new RefImpl(value)
 }
-
 
 export function isRef(value) {
   return !!(value && value[ReactiveFlags.IS_REF])

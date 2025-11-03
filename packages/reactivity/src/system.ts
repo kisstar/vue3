@@ -1,4 +1,4 @@
-export interface Dep {
+export interface Dependency {
   subs?: Link
   subsTail?: Link
 }
@@ -13,7 +13,7 @@ export interface Link {
   prevSub?: Link
   nextSub?: Link
 
-  dep: Dep // 依赖项
+  dep: Dependency // 依赖项
   nextDep?: Link
 }
 
@@ -36,14 +36,13 @@ export function link(dep /* RefImpl */, sub /* ReactiveEffect */) {
     newLink.nextDep = nextDep
     newLink.sub = sub
     newLink.dep = dep
-
   } else {
     newLink = {
       sub,
       prevSub: undefined,
       nextSub: undefined,
       dep,
-      nextDep
+      nextDep,
     }
   }
 
@@ -67,20 +66,20 @@ export function link(dep /* RefImpl */, sub /* ReactiveEffect */) {
 }
 
 export function propagate(subs) {
-  let link = subs;
+  let link = subs
   let queueEffect = []
 
   while (link) {
     const sub = link.sub
 
     if (!sub.tracking) {
-      queueEffect.push()
+      queueEffect.push(sub)
     }
 
     link = link.nextSub
   }
 
-  queueEffect.forEach(effect => {
+  queueEffect.forEach((effect) => {
     effect.notify()
   })
 }
