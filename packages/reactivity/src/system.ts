@@ -69,8 +69,9 @@ export function link(dep /* RefImpl */, sub /* ReactiveEffect */) {
  * 先计算出新的值，然后再通知依赖进行更新
  */
 function processComputedUpdate(sub) {
-  sub.update()
-  propagate(sub.subs)
+  if (sub.subs && sub.update()) {
+    propagate(sub.subs)
+  }
 }
 
 export function propagate(subs) {
@@ -80,9 +81,10 @@ export function propagate(subs) {
   while (link) {
     const sub = link.sub
 
-    if (!sub.tracking) {
+    if (!sub.tracking && !sub.dirty) {
+      sub.dirty = true
+
       if (sub.update) {
-        // 处理计算属性
         processComputedUpdate(sub)
       } else {
         queueEffect.push(sub)
@@ -105,6 +107,7 @@ export function startTrack(sub) {
 export function endTrack(sub) {
   sub.tracking = false
   const depsTail = sub.depsTail
+  sub.dirty = false
 
   if (depsTail) {
     if (depsTail.nextDep) {

@@ -11,6 +11,7 @@ class ReactiveEffect {
   deps?: Link
   depsTail?: Link
   tracking = false
+  dirty = true
 
   constructor(public fn) {}
 

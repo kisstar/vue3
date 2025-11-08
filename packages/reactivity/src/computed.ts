@@ -1,10 +1,11 @@
-import { isFunction } from '@vue/shared'
+import { hasChanged, isFunction } from '@vue/shared'
 import { ReactiveFlags } from './ref'
 import { Dependency, endTrack, link, Link, startTrack, Sub } from './system'
 import { activeSub, setActiveSub } from './effect'
 
 class ComputedRefImpl implements Dependency, Sub {
   [ReactiveFlags.IS_REF] = true
+  dirty = true
   _value
   subs?: Link
   subsTail?: Link
@@ -17,7 +18,9 @@ class ComputedRefImpl implements Dependency, Sub {
   ) {}
 
   get value() {
-    this.update()
+    if (this.dirty) {
+      this.update()
+    }
 
     // 计算属性和 effect 之间建立依赖关系
     if (activeSub) {
@@ -39,7 +42,11 @@ class ComputedRefImpl implements Dependency, Sub {
     startTrack(this)
 
     try {
+      const oldValue = this._value
+
       this._value = this.fn()
+
+      return hasChanged(this._value, oldValue)
     } finally {
       endTrack(this)
       setActiveSub(prevSub)
