@@ -1,31 +1,32 @@
-import { endTrack, Link, startTrack } from "./system"
+import { endTrack, Link, startTrack } from './system'
 
 // 当前正在执行的 effect
 export let activeSub
+
+export function setActiveSub(effect) {
+  activeSub = effect
+}
 
 class ReactiveEffect {
   deps?: Link
   depsTail?: Link
   tracking = false
 
-  constructor(public fn) {
-
-  }
+  constructor(public fn) {}
 
   run() {
     const prevSub = activeSub
 
-    activeSub = this
+    setActiveSub(this)
     startTrack(this)
 
     try {
       return this.fn()
     } finally {
       endTrack(this)
-      activeSub = prevSub
+      setActiveSub(prevSub)
     }
   }
-
 
   scheduler() {
     this.run()
@@ -35,8 +36,6 @@ class ReactiveEffect {
     this.scheduler()
   }
 }
-
-
 
 export function effect(fn, options) {
   const e = new ReactiveEffect(fn)
