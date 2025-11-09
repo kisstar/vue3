@@ -4,9 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <style>
+      #box1,
+      #box2 {
+        width: 100px;
+        height: 100px;
+      }
+
+      #box1 {
+        background-color: red;
+      }
+
+      #box2 {
+        background-color: blue;
+      }
+    </style>
   </head>
 
   <body>
+    <div id="box1"></div>
+    <div id="box2"></div>
+    <button id="btn">切换开关</button>
     <script type="module">
       import { ref, reactive, watch } from '../dist/reactivity.esm.js'
       // import {
@@ -15,28 +33,53 @@
       //   effect,
       // } from 'https://cdn.bootcdn.net/ajax/libs/vue/3.5.20/vue.esm-browser.js'
 
-      const state = reactive({
-        a: {
-          b: {
-            c: 0,
-          },
-        },
-      })
+      // const state = reactive({
+      //   a: {
+      //     b: {
+      //       c: 0,
+      //     },
+      //   },
+      // })
 
-      const stop = watch(
-        state,
-        (newValue, oldValue) => {
-          console.log(newValue, oldValue)
+      // const stop = watch(
+      //   state,
+      //   (newValue, oldValue) => {
+      //     console.log(newValue, oldValue)
+      //   },
+      //   {},
+      // )
+
+      // setTimeout(() => {
+      //   state.a.b.c = 1
+      //   setTimeout(() => {
+      //     state.a.b.c = 2
+      //   }, 1000)
+      // }, 1000)
+
+      const flag = ref(true)
+
+      watch(
+        flag,
+        (newValue, oldValue, onCleanUp) => {
+          const box = newValue ? box1 : box2
+          const handler = () => {
+            console.log(newValue ? 'box1' : 'box2')
+          }
+
+          onCleanUp(() => {
+            box.removeEventListener('click', handler)
+          })
+
+          box.addEventListener('click', handler)
         },
-        {},
+        {
+          immediate: true,
+        },
       )
 
-      setTimeout(() => {
-        state.a.b.c = 1
-        setTimeout(() => {
-          state.a.b.c = 2
-        }, 1000)
-      }, 1000)
+      btn.addEventListener('click', () => {
+        flag.value = !flag.value
+      })
     </script>
   </body>
 </html>

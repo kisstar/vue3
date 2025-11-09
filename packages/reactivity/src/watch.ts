@@ -42,11 +42,21 @@ export function watch(source, cb, options: WatchOptions = {}) {
   }
 
   const effect = new ReactiveEffect(getter)
+  let cleanUp = null
+
+  function onCleanUp(fn) {
+    cleanUp = fn
+  }
 
   function job() {
+    if (cleanUp) {
+      cleanUp()
+      cleanUp = null
+    }
+
     const newValue = effect.run()
 
-    cb(newValue, oldValue)
+    cb(newValue, oldValue, onCleanUp)
     oldValue = newValue
   }
 
