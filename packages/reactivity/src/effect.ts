@@ -7,15 +7,18 @@ export function setActiveSub(effect) {
   activeSub = effect
 }
 
-class ReactiveEffect {
+export class ReactiveEffect {
   deps?: Link
   depsTail?: Link
+  active = true
   tracking = false
   dirty = true
 
   constructor(public fn) {}
 
   run() {
+    if (!this.active) return this.fn()
+
     const prevSub = activeSub
 
     setActiveSub(this)
@@ -35,6 +38,14 @@ class ReactiveEffect {
 
   notify() {
     this.scheduler()
+  }
+
+  stop() {
+    if (this.active) {
+      startTrack(this)
+      endTrack(this)
+      this.active = false
+    }
   }
 }
 

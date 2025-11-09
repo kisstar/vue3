@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <script type="module">
+      import { ref, reactive, watch } from '../dist/reactivity.esm.js'
+      // import {
+      //   ref,
+      //   computed,
+      //   effect,
+      // } from 'https://cdn.bootcdn.net/ajax/libs/vue/3.5.20/vue.esm-browser.js'
+
+      const state = reactive({
+        a: {
+          b: {
+            c: 0,
+          },
+        },
+      })
+
+      const stop = watch(
+        state,
+        (newValue, oldValue) => {
+          console.log(newValue, oldValue)
+        },
+        {},
+      )
+
+      setTimeout(() => {
+        state.a.b.c = 1
+        setTimeout(() => {
+          state.a.b.c = 2
+        }, 1000)
+      }, 1000)
+    </script>
+  </body>
+</html>

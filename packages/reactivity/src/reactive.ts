@@ -28,3 +28,7 @@ function createReactiveObject(target) {
 
   return proxy
 }
+
+export function isReactive(value) {
+  return reactiveSet.has(value)
+}
