@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <script type="module">
+      import { ref, reactive, watch, effect } from '../dist/reactivity.esm.js'
+      // import {
+      //   ref,
+      //   computed,
+      //   effect,
+      // } from 'https://cdn.bootcdn.net/ajax/libs/vue/3.5.20/vue.esm-browser.js'
+
+      const state = reactive(['a', 'b', 'c', 'd'])
+
+      effect(() => {
+        // console.log('state[3]: ', state[3])
+        console.log('state[3]: ', state.length)
+      })
+
+      setTimeout(() => {
+        // state[3] = 'e'
+        // state.length = 2
+        state.push('e')
+      }, 1000)
+    </script>
+  </body>
+</html>
