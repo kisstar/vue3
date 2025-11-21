@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import {
+        // h,
+        render,
+        // createRenderer,
+      } from 'https://cdn.bootcdn.net/ajax/libs/vue/3.5.20/vue.esm-browser.js'
+      import { h } from '../dist/vue.esm.js'
+
+      const vnode = h('div', 'hello world')
+
+      console.log(vnode)
+
+      render(vnode, app)
+    </script>
+  </body>
+</html>

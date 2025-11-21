@@ -4,4 +4,10 @@ import { patchProp } from './patchProp'
 
 export * from '@vue/runtime-core'
 
-export const renderOptions = { patchProp, ...nodeOps }
+const renderOptions = { patchProp, ...nodeOps }
+
+export function render(vnode, container) {
+  return createRenderer(renderOptions).render(vnode, container)
+}
+
+export { renderOptions }
