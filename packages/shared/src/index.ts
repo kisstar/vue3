@@ -9,3 +9,7 @@ export function isFunction(value) {
 export function hasChanged(value, oldValue) {
   return !Object.is(value, oldValue)
 }
+
+export function isOn(key: string) {
+  return /^on[A-Z]/.test(key)
+}

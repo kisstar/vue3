@@ -13,13 +13,39 @@
         // render,
         createRenderer,
       } from 'https://cdn.bootcdn.net/ajax/libs/vue/3.5.20/vue.esm-browser.js'
-      import { nodeOps } from '../dist/vue.esm.js'
+      import { renderOptions } from '../dist/vue.esm.js'
 
-      const rendereer = createRenderer(nodeOps)
+      const rendereer = createRenderer(renderOptions)
 
-      const vnode = h('div', 'hello world')
+      const vnode = h(
+        'div',
+        {
+          style: {
+            color: 'red',
+          },
+          onClick() {
+            console.count('clicked')
+          },
+        },
+        'hello world',
+      )
+      const vnode2 = h(
+        'div',
+        {
+          id: 'home',
+          style: { color: 'blue' },
+          // onClick() {
+          //   console.count('new clicked')
+          // },
+        },
+        'hello world',
+      )
 
       rendereer.render(vnode, app)
+
+      setTimeout(() => {
+        rendereer.render(vnode2, app)
+      }, 1000)
     </script>
   </body>
 </html>
