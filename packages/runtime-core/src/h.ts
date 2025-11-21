@@ -1,4 +1,5 @@
-import { isObject } from '@vue/shared'
+import { isArray, isObject } from '@vue/shared'
+import { createVNode, isVNode } from './vnode'
 
 /**
  * 主要是对参数做一个标准化，最终调用 createVNode 函数来创建虚拟节点
@@ -13,7 +14,7 @@ export function h(type, propsOrChildreen, childern) {
   const l = arguments.length
 
   if (l === 2) {
-    if (Array.isArray(propsOrChildreen)) {
+    if (isArray(propsOrChildreen)) {
       return createVNode(type, null, propsOrChildreen)
     }
     if (isObject(propsOrChildreen)) {
@@ -34,22 +35,4 @@ export function h(type, propsOrChildreen, childern) {
 
     return createVNode(type, propsOrChildreen, childern)
   }
-}
-
-function isVNode(value) {
-  return value?.__v_isVNode
-}
-
-function createVNode(type, props, childern?) {
-  const vnode = {
-    __v_isVNode: true,
-    type,
-    props,
-    children: childern,
-    key: props?.key, // for diff
-    el: null, // 虚拟节点要挂在的元素
-    shapeFlag: 9,
-  }
-
-  return vnode
 }
