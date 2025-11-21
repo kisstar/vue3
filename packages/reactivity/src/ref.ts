@@ -62,3 +62,56 @@ export function triggerRef(dep) {
     propagate(dep.subs)
   }
 }
+
+class ObjectRefImpl {
+  [ReactiveFlags.IS_REF] = true
+  constructor(
+    public _target,
+    public _key,
+  ) {}
+
+  get value() {
+    return this._target[this._key]
+  }
+
+  set value(newValue) {
+    this._target[this._key] = newValue
+  }
+}
+
+export function toRef(target, key) {
+  return new ObjectRefImpl(target, key)
+}
+
+// 将响应式对象的所有属性转换为 ref
+export function toRefs(target) {
+  const ret = {}
+
+  for (const key in target) {
+    ret[key] = toRef(target, key)
+  }
+
+  return ret
+}
+
+export function unref(ref) {
+  return isRef(ref) ? ref.value : ref
+}
+
+export function proxyRefs(target) {
+  return new Proxy(target, {
+    get(target, key, receiver) {
+      return unref(Reflect.get(target, key, receiver))
+    },
+    set(target, key, value, receiver) {
+      const oldValue = target[key]
+
+      if (isRef(oldValue) && !isRef(value)) {
+        oldValue.value = value
+        return true
+      }
+
+      return Reflect.set(target, key, value, receiver)
+    },
+  })
+}
