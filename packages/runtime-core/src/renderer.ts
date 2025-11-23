@@ -18,7 +18,7 @@ export function createRenderer(options) {
     }
   }
 
-  function mountElement(vnode, container) {
+  function mountElement(vnode, container, anchor) {
     /**
      * 1. 创建真实元素
      * 2. 设置它的 props
@@ -40,7 +40,100 @@ export function createRenderer(options) {
     }
 
     vnode.el = el
-    hostInsert(el, container)
+    hostInsert(el, container, anchor)
+  }
+
+  function patchKeyedChildren(c1, c2, container) {
+    /**
+     * 全量 diff
+     * 1. 双端 diff
+     *
+     * 1.1 头部比较
+     * c1: [a, b]
+     * c2: [a, b, c]
+     * 开始时 i = 0，e1 = 1，e2 = 2
+     * 结束时 i = 2, e1 = 1, e2 = 2
+     *
+     * 1.2 尾部对比
+     * c1: [a, b]
+     * c2: [c, a, b]
+     * 开始时 i = 0，e1 = 1，e2 = 2
+     * 结束时 i = 0, e1 = -1, e2 = 0
+     *
+     * 结论：
+     * 当 i > e1 时，说明老的少，新的多，需要挂载，挂载范围是 i 到 e2
+     * 当 i > e2 时，说明老的多，新的少，需要卸载，卸载范围是 i 到 e1
+     */
+
+    let i = 0 // 开始对比的下标
+
+    // 老的子节点最后一个元素的下标
+    let e1 = c1.length - 1
+
+    // 新的子节点最后一个元素的下标
+    let e2 = c2.length - 1
+
+    /**
+     * 1.1 头部比较
+     * c1: [a, b]
+     * c2: [a, b, c]
+     *
+     * 开始时 i = 0，e1 = 1，e2 = 2
+     * 结束时 i = 2, e1 = 1, e2 = 2
+     */
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[i]
+      const n2 = c2[i]
+
+      if (isSameVNodeType(n1, n2)) {
+        // 如果 n1 和 n2 是同一个类型的子节点，那就可以更新复用
+        patch(n1, n2, container)
+      } else {
+        break
+      }
+
+      i++
+    }
+
+    /**
+     * 1.2 尾部对比
+     * c1: [a, b]
+     * c2: [c, a, b]
+     * 开始时 i = 0，e1 = 1，e2 = 2
+     * 结束时 i = 0, e1 = -1, e2 = 0
+     */
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[e1]
+      const n2 = c2[e2]
+
+      if (isSameVNodeType(n1, n2)) {
+        patch(n1, n2, container)
+      } else {
+        break
+      }
+
+      e1--
+      e2--
+    }
+
+    if (i > e1) {
+      // 表示老的少，新的多，需要进行挂载，挂载范围是 i 到 e2
+
+      const nextPos = e2 + 1
+      const anchor = nextPos < c2.length ? c2[nextPos].el : null
+
+      while (i <= e2) {
+        patch(null, c2[i], container, anchor)
+        i++
+      }
+    } else if (i > e2) {
+      // 表示老的多，新的少，需要进行卸载，卸载范围是 i 到 e1
+
+      while (i <= e1) {
+        hostRemove(c1[i].el)
+        i++
+      }
+    }
   }
 
   function patchChildren(n1, n2) {
@@ -88,7 +181,10 @@ export function createRenderer(options) {
         if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
           // 老的是数组
           if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-            // TODO: diff children
+            const c1 = n1.children
+            const c2 = n2.children
+
+            patchKeyedChildren(c1, c2, el)
           } else {
             // 新的是 null，直接卸载老的
             unmountChildren(n1.children)
@@ -148,7 +244,7 @@ export function createRenderer(options) {
    * @param n2 新节点
    * @param container 要挂载的容器
    */
-  function patch(n1, n2, container) {
+  function patch(n1, n2, container, anchor = null) {
     if (n1 === n2) {
       return
     }
@@ -158,7 +254,7 @@ export function createRenderer(options) {
       n1 = null
     }
     if (n1 === null) {
-      mountElement(n2, container)
+      mountElement(n2, container, anchor)
     } else {
       patchElement(n1, n2)
     }
