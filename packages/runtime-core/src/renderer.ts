@@ -152,6 +152,7 @@ export function createRenderer(options) {
     let s2 = i
 
     const keyToNewIndexMap = new Map()
+    const newIndexToOldIndexMap = new Array(e2 - s2 + 1).fill(-1)
 
     // 遍历新的节点得到一份「key => 新节点index」的映射，便于下方 diff 时通过 key 找到对应的新节点
     for (let j = s2; j <= e2; j++) {
@@ -160,27 +161,43 @@ export function createRenderer(options) {
       keyToNewIndexMap.set(n2.key, j)
     }
 
+    let pos = -1
+    // 是否需要移动（如果旧的节点本身就是有序的就不需要进行移动，也就不需要计算递增序列）
+    let moved = false
+
     // 遍历老的节点，进行更新或者卸载多余的节点
     for (let j = s1; j <= e1; j++) {
       const n1 = c1[j]
       const newIndex = keyToNewIndexMap.get(n1.key)
 
       if (newIndex) {
+        if (newIndex > pos) {
+          pos = newIndex
+        } else {
+          moved = true
+        }
+
         // 老的有，新的也有就更新
         patch(n1, c2[newIndex], container)
+        newIndexToOldIndexMap[newIndex] = j
       } else {
         // 老的有，新的没有就直接卸载
         unmount(n1)
       }
     }
 
-    // 便利新的节点，调整顺序（从后开始往前插入一遍）
+    const newIndexSequence = moved ? getSequence(newIndexToOldIndexMap) : []
+    const sequenceSet = new Set(newIndexSequence)
+
+    // 遍历新的节点，调整顺序（从后开始往前插入一遍）
     for (let j = e2; j >= s2; j--) {
       const n2 = c2[j]
       const anchor = c2[j + 1]?.el || null
 
       if (n2.el) {
-        hostInsert(n2.el, container, anchor)
+        if (moved && !sequenceSet.has(j)) {
+          hostInsert(n2.el, container, anchor)
+        }
       } else {
         // 如果是新节点的话，通过 patch 进行创建挂载
         patch(null, n2, container, anchor)
@@ -350,4 +367,69 @@ export function createRenderer(options) {
   return {
     render,
   }
+}
+
+/**
+ * 求最长递增子序列
+ */
+
+function getSequence(arr) {
+  const result = [] // 最终的结果，存储的是索引
+  const map = new Map() // 存储前驱索引，用户反向追溯
+
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i]
+
+    // -1 是填充的占位数据，直接跳过
+    if (item === -1 || item === undefined) {
+      continue
+    }
+
+    if (!result.length) {
+      result.push(i)
+      continue
+    }
+
+    const lastIndex = result[result.length - 1]
+    const lastItem = arr[lastIndex]
+
+    if (item > lastItem) {
+      result.push(i)
+      map.set(i, lastIndex)
+      continue
+    }
+
+    let left = 0
+    let right = result.length - 1
+
+    while (left < right) {
+      const mid = Math.floor((left + right) / 2)
+      const midItem = arr[result[mid]]
+
+      if (midItem < item) {
+        left = mid + 1
+      } else {
+        right = mid
+      }
+    }
+
+    if (arr[result[left]] > item) {
+      if (left > 0) {
+        map.set(i, result[left - 1])
+      }
+
+      result[left] = i
+    }
+  }
+
+  let l = result.length
+  let last = result[l - 1]
+
+  while (l > 0) {
+    l--
+    result[l] = last
+    last = map.get(last)
+  }
+
+  return result
 }
