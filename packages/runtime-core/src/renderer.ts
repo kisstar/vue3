@@ -46,6 +46,7 @@ export function createRenderer(options) {
   function patchKeyedChildren(c1, c2, container) {
     /**
      * 全量 diff
+     *
      * 1. 双端 diff
      *
      * 1.1 头部比较
@@ -63,6 +64,13 @@ export function createRenderer(options) {
      * 结论：
      * 当 i > e1 时，说明老的少，新的多，需要挂载，挂载范围是 i 到 e2
      * 当 i > e2 时，说明老的多，新的少，需要卸载，卸载范围是 i 到 e1
+     *
+     * 2. 乱序 diff
+     * c1: [a, b, c, d, e]
+     * c2: [a, c, d, b, e]
+     *
+     * 开始时 i = 0, e1 = 4, e2 = 4
+     * 双端diff结束时：i = 1，e1 = 3，e2 = 3
      */
 
     let i = 0 // 开始对比的下标
@@ -132,6 +140,50 @@ export function createRenderer(options) {
       while (i <= e1) {
         hostRemove(c1[i].el)
         i++
+      }
+    }
+
+    /**
+     * 2 乱序 diff
+     */
+    // 老的子节点开始查找的位置
+    let s1 = i
+    // 新的子节点开始查找的位置
+    let s2 = i
+
+    const keyToNewIndexMap = new Map()
+
+    // 遍历新的节点得到一份「key => 新节点index」的映射，便于下方 diff 时通过 key 找到对应的新节点
+    for (let j = s2; j <= e2; j++) {
+      const n2 = c2[j]
+
+      keyToNewIndexMap.set(n2.key, j)
+    }
+
+    // 遍历老的节点，进行更新或者卸载多余的节点
+    for (let j = s1; j <= e1; j++) {
+      const n1 = c1[j]
+      const newIndex = keyToNewIndexMap.get(n1.key)
+
+      if (newIndex) {
+        // 老的有，新的也有就更新
+        patch(n1, c2[newIndex], container)
+      } else {
+        // 老的有，新的没有就直接卸载
+        unmount(n1)
+      }
+    }
+
+    // 便利新的节点，调整顺序（从后开始往前插入一遍）
+    for (let j = e2; j >= s2; j--) {
+      const n2 = c2[j]
+      const anchor = c2[j + 1]?.el || null
+
+      if (n2.el) {
+        hostInsert(n2.el, container, anchor)
+      } else {
+        // 如果是新节点的话，通过 patch 进行创建挂载
+        patch(null, n2, container, anchor)
       }
     }
   }
