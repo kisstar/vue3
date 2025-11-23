@@ -10,15 +10,18 @@
     <script type="module">
       import { h, render } from '../dist/vue.esm.js'
 
-      const vnode = h('div', { style: { color: 'red' } }, [
+      const vnode1 = h('div', { style: { color: 'red' } }, [
         h('span', 'hello'),
         h('span', ' world'),
       ])
+      const vnode2 = h('div', {
+        style: { background: 'blue', height: '100px' },
+      })
 
-      render(vnode, app)
+      render(vnode1, app)
 
       setTimeout(() => {
-        render(null, app)
+        render(vnode2, app)
       }, 1000)
     </script>
   </body>
